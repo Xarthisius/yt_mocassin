@@ -15,7 +15,15 @@ def _parse_grid0(path):
     with open(_valid_gridfile(path, 'grid0.out'), 'r') as fd:
         fd.readline()
         data = fd.readline().split()
-    return map(np.int64, data[:3]), map(np.float64, data[-2:])
+        ddims = map(np.int64, data[:3])
+        bbox = np.zeros((3,2))
+        for jn, nn in enumerate(ddims):
+            ax = np.zeros(nn)
+            for ic in range(nn):
+                ax[ic] = float(fd.readline().strip())
+            bbox[jn, :] = [ax.min(), ax.max()]
+
+    return ddims, bbox
 
 
 def _parse_grid1(path, domain_dimensions):
@@ -43,9 +51,7 @@ def load_mocassin(path):
     domain_dims, domain_edges = _parse_grid0(path)
     data = _parse_grid1(path, domain_dims)
     data.update(_parse_plotout(path, domain_dims))
-    bbox = np.tile(np.array(domain_edges), [1, 3])
-    bbox.shape = (3, 2)
-    return load_uniform_grid(data, np.array(domain_dims), 1, bbox=bbox)
+    return load_uniform_grid(data, np.array(domain_dims), 1, bbox=domain_edges)
 
 
 if __name__ == "__main__":
